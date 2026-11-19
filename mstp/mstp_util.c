@@ -1194,8 +1194,18 @@ static void mstptimer_update(MSTP_INDEX mstp_index, PORT_ID port_number)
         }
     }
     
-    mstp_flush(mstp_index, port_number);
-   
+    /*
+     * Retry a flush that the topology change state machine requested and
+     * mstp_tcm_action() could not complete (the 802.1Q fdbFlush variable).
+     * Flush nothing when no flush is pending.
+     */
+    if (cport->fdbFlush)
+    {
+        if (mstp_port->operEdge || mstp_flush(mstp_index, port_number))
+        {
+            cport->fdbFlush = false;
+        }
+    }
 }
 
 /*****************************************************************************/
