@@ -317,6 +317,16 @@ void stp_pkt_rx_handler (evutil_socket_t fd, short what, void *arg)
         return;
     }
 
+    /*
+     * BPDUs go out on g_stpd_pkt_handle, so the kernel also hands each one to
+     * this per-interface ETH_P_ALL socket, marked PACKET_OUTGOING. Those are
+     * our own BPDUs, not received ones.
+     */
+    if (from.sll_pkttype == PACKET_OUTGOING)
+    {
+        return;
+    }
+
     if (from.sll_ifindex != intf_node->kif_index)
     {
         if_indextoname(from.sll_ifindex, ifname);
